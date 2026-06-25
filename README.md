@@ -12,7 +12,7 @@ Firmware for an ESP32-based GameDay DJ device.
 
 ## Firmware file
 
-- `/home/runner/work/gameday-dj/gameday-dj/gameday_dj.ino`
+- `gameday_dj.ino`
 
 ## SD card files
 

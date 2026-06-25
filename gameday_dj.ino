@@ -46,6 +46,10 @@ class BufferedAudioOutput final : public AudioOutput {
   bool begin() override { return true; }
 
   bool ConsumeSample(int16_t sample[2]) override {
+    if (pcmMutex == nullptr) {
+      return false;
+    }
+
     const uint8_t frame[4] = {
         static_cast<uint8_t>(sample[0] & 0xFF),
         static_cast<uint8_t>((sample[0] >> 8) & 0xFF),
@@ -74,6 +78,10 @@ class BufferedAudioOutput final : public AudioOutput {
 BufferedAudioOutput bufferedOutput;
 
 void resetPcmBuffer() {
+  if (pcmMutex == nullptr) {
+    return;
+  }
+
   xSemaphoreTake(pcmMutex, portMAX_DELAY);
   pcmReadIndex = 0;
   pcmWriteIndex = 0;
@@ -82,6 +90,11 @@ void resetPcmBuffer() {
 }
 
 int32_t btDataCallback(uint8_t *data, int32_t length) {
+  if (pcmMutex == nullptr) {
+    memset(data, 0, static_cast<size_t>(length));
+    return length;
+  }
+
   xSemaphoreTake(pcmMutex, portMAX_DELAY);
 
   const size_t requested = static_cast<size_t>(length);
@@ -167,7 +180,7 @@ void updateButton(ButtonState &state, uint8_t pin) {
 
 void setupSdCard() {
   if (!SD.begin(SD_CS_PIN)) {
-    Serial.println("SD card mount failed");
+    Serial.println("SD card mount failed - playback will not work");
   }
 }
 
@@ -186,6 +199,15 @@ void setup() {
   digitalWrite(BT_STATUS_LED_PIN, LOW);
 
   pcmMutex = xSemaphoreCreateMutex();
+  if (pcmMutex == nullptr) {
+    Serial.println("Failed to create PCM mutex - playback disabled");
+    while (true) {
+      digitalWrite(BT_STATUS_LED_PIN, HIGH);
+      delay(250);
+      digitalWrite(BT_STATUS_LED_PIN, LOW);
+      delay(250);
+    }
+  }
   resetPcmBuffer();
 
   setupSdCard();

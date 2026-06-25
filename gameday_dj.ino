@@ -147,7 +147,6 @@ bool startTrack(const char *path) {
   if (openedFile == nullptr || !openedFile->isOpen()) {
     delete openedFile;
     Serial.printf("Unable to open track: %s\n", path);
-    stopTrack();
     return false;
   }
   currentFile = openedFile;

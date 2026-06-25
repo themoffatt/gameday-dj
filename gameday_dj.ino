@@ -14,6 +14,7 @@ constexpr uint8_t BT_STATUS_LED_PIN = 2;
 constexpr uint8_t SD_CS_PIN = 5;
 
 constexpr uint32_t DEBOUNCE_MS = 40;
+constexpr uint32_t LOOP_DELAY_MS = 5;
 constexpr size_t PCM_BUFFER_BYTES = 16 * 1024;
 
 const char *kTrackButton1 = "/button1.mp3";
@@ -192,6 +193,7 @@ void setupBluetooth() {
 
 void setup() {
   Serial.begin(115200);
+  delay(50);
 
   pinMode(BUTTON_1_PIN, INPUT_PULLUP);
   pinMode(BUTTON_2_PIN, INPUT_PULLUP);
@@ -234,5 +236,5 @@ void loop() {
 
   digitalWrite(BT_STATUS_LED_PIN, a2dpSource.is_connected() ? HIGH : LOW);
 
-  delay(5);
+  delay(LOOP_DELAY_MS);
 }

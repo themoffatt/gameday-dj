@@ -137,12 +137,14 @@ bool startTrack(const char *path) {
     return false;
   }
 
-  currentFile = new AudioFileSourceSD(path);
-  if (currentFile == nullptr || !currentFile->isOpen()) {
+  AudioFileSourceSD *openedFile = new AudioFileSourceSD(path);
+  if (openedFile == nullptr || !openedFile->isOpen()) {
+    delete openedFile;
     Serial.printf("Unable to open track: %s\n", path);
     stopTrack();
     return false;
   }
+  currentFile = openedFile;
 
   if (!mp3Decoder.begin(currentFile, &bufferedOutput)) {
     Serial.printf("Failed to begin MP3 decode: %s\n", path);

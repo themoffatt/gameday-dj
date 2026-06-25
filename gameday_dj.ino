@@ -32,6 +32,7 @@ size_t pcmUsed = 0;
 
 bool queuedPlayTrack1 = false;
 bool queuedPlayTrack2 = false;
+bool sdReady = false;
 
 struct ButtonState {
   bool lastRaw = HIGH;
@@ -130,6 +131,11 @@ void stopTrack() {
 }
 
 bool startTrack(const char *path) {
+  if (!sdReady) {
+    Serial.println("Playback unavailable: SD card not initialized");
+    return false;
+  }
+
   stopTrack();
 
   if (!SD.exists(path)) {
@@ -182,7 +188,8 @@ void updateButton(ButtonState &state, uint8_t pin) {
 }
 
 void setupSdCard() {
-  if (!SD.begin(SD_CS_PIN)) {
+  sdReady = SD.begin(SD_CS_PIN);
+  if (!sdReady) {
     Serial.println("SD card mount failed - playback will not work");
   }
 }
@@ -205,6 +212,7 @@ void setup() {
   pcmMutex = xSemaphoreCreateMutex();
   if (pcmMutex == nullptr) {
     Serial.println("Failed to create PCM mutex - playback disabled");
+    Serial.flush();
     while (true) {
       digitalWrite(BT_STATUS_LED_PIN, HIGH);
       delay(250);
